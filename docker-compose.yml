@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: dental_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dental_chatbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: dental_backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # for convenience if you don't want .env yet
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: dental_chatbot
+      PORT: 4000
+      PYTHON_SERVICE_URL: http://python-service:8000   # <-- add this line
+    depends_on:
+      - postgres
+    ports:
+      - "4000:4000"
+
+  python-service:
+    build: ./python-service
+    container_name: dental_python_service
+    restart: unless-stopped
+    env_file:
+      - ./python-service/.env
+    environment:
+      BACKEND_BASE_URL: http://backend:4000
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dental_chatbot
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./client
+    container_name: dental_frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:4000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:

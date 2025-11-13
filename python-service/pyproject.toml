@@ -1,0 +1,25 @@
+[project]
+name = "dental-python-service"
+version = "0.1.0"
+description = "FastAPI + (optional) LangChain microservice for dental chatbot"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "fastapi==0.115.5",
+  "uvicorn[standard]==0.32.0",
+  "langchain>=0.2.13",
+  "langchain-openai>=0.1.21",
+  "psycopg2-binary==2.9.9",
+  "python-dateutil==2.9.0.post0",
+  "pydantic>=2.8.2",
+  "httpx==0.27.2",
+  "python-dotenv==1.0.1"
+]
+
+[tool.uv]
+cache-dir = ".uv-cache"
+system-site-packages = false
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

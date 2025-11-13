@@ -1,0 +1,104 @@
+# ------------------------------
+# OS / Editor cruft
+# ------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/
+*.iml
+
+# ------------------------------
+# Env files (keep examples)
+# ------------------------------
+.env
+.env.*
+**/.env
+**/.env.*
+!**/.env.example
+
+# ------------------------------
+# Logs
+# ------------------------------
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------
+# Temporary / caches
+# ------------------------------
+.tmp/
+tmp/
+**/.tmp/
+**/tmp/
+.cache/
+**/.cache/
+.nyc_output/
+coverage/
+.coverage*
+coverage.xml
+
+# ------------------------------
+# Node / Next.js (frontend + backend)
+# ------------------------------
+node_modules/
+**/node_modules/
+dist/
+build/
+.out/
+out/
+.next/
+.next/
+.next/cache/
+.vercel/
+.turbo/
+.swc/
+
+# ------------------------------
+# Python (uv / venv / caches)
+# ------------------------------
+.venv/
+**/.venv/
+.uv-cache/
+**/.uv-cache/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ------------------------------
+# Docker / Compose (local-only stuff)
+# ------------------------------
+docker-compose.override.yml
+*.local.yml
+*.local.yaml
+.envrc
+
+# If you ever bind a local Postgres volume directory, ignore it
+pgdata/
+postgres-data/
+
+# ------------------------------
+# Build artifacts / misc
+# ------------------------------
+*.tgz
+*.tar
+*.tar.gz
+*.zip
+*.log
+*.pid
+
+# Keep SQL schema/data scripts tracked
+# (no ignore needed for /sql; this is just a reminder)
+# /sql/*
