@@ -165,14 +165,11 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
 
 > **Why service names?** Inside Docker networks, containers reach each other by **service name** (e.g., `postgres`, `python-service`). `localhost` would point to the container itself.
 
----
-
 ### 5.3) Build & start all services
 ```bash
 docker compose up -d --build
 ```
 
----
 
 ### 5.4) Run SQL scripts (under postgres scripts folder)
 
