@@ -100,13 +100,13 @@ Runs locally with **Docker Compose**.
 > - Docker Desktop (or Docker Engine + Compose)
 > - Ports available: Postgres `5432`, Backend `4000`, Python `8000`, Frontend `3000`
 
-### 1) Clone
+### 5.1) Clone
 ```bash
 git clone <your-repo-url> dental-chatbot-mvp
 cd dental-chatbot-mvp
 ```
 
-### 2) Create env files 
+### 5.2) Create env files 
 
 **`backend/.env`**
 ```env
@@ -167,48 +167,19 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
 
 ---
 
-### 3) Build & start all services
+### 5.3) Build & start all services
 ```bash
 docker compose up -d --build
 ```
 
 ---
 
-### 4) Run SQL scripts (under postgres scripts folder)
+### 5.4) Run SQL scripts (under postgres scripts folder)
 
 ---
 
-## 6) Run locally (Docker Compose)
 
-```bash
-# 0) Create env files as shown above
-
-# 1) Build & start
-docker compose up -d --build
-
-# 2) Load schema + sample data (one-time)
-docker cp sql/schema.sql dental_postgres:/schema.sql
-docker exec -it dental_postgres psql -U postgres -d dental_chatbot -f /schema.sql
-
-docker cp sql/sample_data.sql dental_postgres:/sample_data.sql
-docker exec -it dental_postgres psql -U postgres -d dental_chatbot -f /sample_data.sql
-
-# (Optional) set demo password for Alice to match frontend login
-docker exec -it dental_postgres psql -U postgres -d dental_chatbot \
-  -c "UPDATE users SET password_hash='password123' WHERE email='alice@example.com';"
-
-# 3) Open the app
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:4000/health
-# Python:   http://localhost:8000/health
-```
-
-**DBeaver connection** (optional):  
-Host `localhost`, Port `5432`, DB `dental_chatbot`, User `postgres`, Password `postgres`.
-
----
-
-## 9) Test Scenarios (manual checks to screenshot)
+## 6) Test Scenarios (manual checks to screenshot)
 
 1) **Login + token mint**
    - Login as `alice@example.com` / `password123`.
