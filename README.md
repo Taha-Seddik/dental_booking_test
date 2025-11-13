@@ -94,56 +94,87 @@ Runs locally with **Docker Compose**.
 
 ---
 
-## 5) Environment Variables (samples)
+## 5)  How to Run the Project (All Services via Docker Compose)
 
-### 5.1 Backend (`backend/.env`)
+> **Prerequisites**
+> - Docker Desktop (or Docker Engine + Compose)
+> - Ports available: Postgres `5432`, Backend `4000`, Python `8000`, Frontend `3000`
+
+### 1) Clone
+```bash
+git clone <your-repo-url> dental-chatbot-mvp
+cd dental-chatbot-mvp
+```
+
+### 2) Create env files 
+
+**`backend/.env`**
 ```env
 # App
-NODE_ENV=development
 PORT=4000
 LOG_LEVEL=info
 
-# Postgres (matches docker-compose)
+# Postgres (use docker-compose service name, NOT localhost)
 DB_HOST=postgres
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=dental_chatbot
 
-# Service wiring (use service name inside Compose)
+# Python service (service name, NOT localhost)
 PYTHON_SERVICE_URL=http://python-service:8000
 
-# JWT secrets (generate random strings for local dev)
-ACCESS_TOKEN_SECRET=dev_access_secret_please_change
-CHAT_TOKEN_SECRET=dev_chat_secret_please_change
-
-# Rate limiting (optional)
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX=30
+# JWT secrets (demo values — change in real use)
+ACCESS_TOKEN_SECRET=supersecret_access
+CHAT_TOKEN_SECRET=supersecret_chat
 ```
 
-### 5.2 Python service (`python-service/.env`)
+**`python-service/.env`**
 ```env
-# OpenAI (optional – if empty, service can use fallback rules)
-OPENAI_API_KEY=YOUR_KEY_HERE
+# Optional LLM (leave OPENAI_API_KEY empty to use rules-only fallback)
+# OPENAI_API_KEY=YOUR_OPENAI_KEY
 OPENAI_MODEL=gpt-4o-mini
 
-# Postgres (matches docker-compose)
+# Postgres (service name)
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
 POSTGRES_DB=dental_chatbot
 
-# Timezone & logs
+# Service
+PORT=8000
+
+# Timezone & logs (keeps "tomorrow" future & consistent)
 TZ_NAME=Asia/Dubai
 LOG_LEVEL=INFO
+
+# Scheduler defaults
+DEFAULT_PROVIDER=Dr. Bob Dentist
+DEFAULT_LOCATION=Downtown Dental Clinic
+DEFAULT_APPT_MINUTES=30
+BUSINESS_START=09:00
+BUSINESS_END=17:00
 ```
 
-### 5.3 Frontend (`client/.env.local`)
+**`client/.env.local`**
 ```env
+# From the browser’s perspective this is your host port mapping
 NEXT_PUBLIC_BACKEND_URL=http://localhost:4000
 ```
+
+> **Why service names?** Inside Docker networks, containers reach each other by **service name** (e.g., `postgres`, `python-service`). `localhost` would point to the container itself.
+
+---
+
+### 3) Build & start all services
+```bash
+docker compose up -d --build
+```
+
+---
+
+### 4) Run SQL scripts (under postgres scripts folder)
 
 ---
 
@@ -174,36 +205,6 @@ docker exec -it dental_postgres psql -U postgres -d dental_chatbot \
 
 **DBeaver connection** (optional):  
 Host `localhost`, Port `5432`, DB `dental_chatbot`, User `postgres`, Password `postgres`.
-
----
-
-## 7) Endpoints (quick reference)
-
-### Backend
-- `POST /api/auth/login` → `{ email, password }` → returns **access token**
-- `POST /api/chatbot/token` → header `Authorization: Bearer <access token>` → returns **chat token** (5 min)
-- `POST /api/chat`  
-  Headers: `Authorization: Bearer <chat token>`  
-  Body: `{ message: string, sessionId?: string }`  
-  → proxies to Python `/chat` with `{ userId, sessionId, message }`
-
-### Python
-- `GET /health` → `{ status, db, llm }`
-- `POST /chat` → `{ userId: UUID, sessionId?: UUID | null, message: string }`  
-  - Decides tool calls (availability / booking)  
-  - Logs both user & assistant messages to DB  
-  - Returns `{ reply, sessionId }` to the backend
-
----
-
-## 8) How it interprets dates (the “tomorrow” fix)
-
-- Python uses `dateparser` **+ clinic timezone** (env `TZ_NAME`) and coerces results to the **future**.
-- Tools:
-  - `normalize_datetime(text)` → deterministic NL → ISO (e.g., “tomorrow 09:30” → `2025-11-14T09:30:00+04:00`)
-  - `check_availability(date)` → slots for that day (tz-aware)
-  - `schedule_appointment(start_iso)` → inserts **pending** appointment (tz-aware)
-- Final response is **constructed from tool outputs**, not free-text hallucinations.
 
 ---
 
@@ -252,58 +253,3 @@ Host `localhost`, Port `5432`, DB `dental_chatbot`, User `postgres`, Password `p
    - Screenshot: log snippet.
 
 ---
-
-## 10) Troubleshooting
-
-- **Backend says**: `ECONNREFUSED to http://localhost:8000/chat`  
-  Inside Docker, `localhost` is the container itself.  
-  Set `PYTHON_SERVICE_URL=http://python-service:8000` (service name) and restart backend.
-
-- **“Please provide user ID”**  
-  Tools no longer accept `user_id`; Python **always** uses the authenticated `userId` from Node. Ensure Node sends it (logs show `Calling Python with: { userId: ... }`).
-
-- **“tomorrow” becomes 2023 / wrong year**  
-  Fixed by **future-bias + timezone** and deterministic rendering. Ensure python env has:
-  `TZ_NAME=Asia/Dubai` (or your zone) and `dateparser` is installed.
-
-- **`can't compare offset-naive and offset-aware datetimes`**  
-  Use the provided **tz-aware `scheduling.py`**. Rebuild python-service.
-
-- **Duplicate chat messages in DB**  
-  Log turns in **one place**. We keep logging in **Python** and removed Node’s duplicates.
-
-- **DB schema missing**  
-  Run `schema.sql` and `sample_data.sql` into the **same** Postgres used by containers (service name `postgres`). Re-run seed update for Alice’s password if needed.
-
-- **DBeaver connection**
-  Host `localhost`, Port `5432`, DB `dental_chatbot`, User `postgres`, Password `postgres`.
-
----
-
-## 11) Commands (handy)
-
-```bash
-# Tail logs
-docker logs -f dental_backend
-docker logs -f dental_python_service
-docker logs -f dental_postgres
-
-# Health checks
-curl -s http://localhost:4000/health | jq
-curl -s http://localhost:8000/health | jq
-
-# Call Python /chat directly (paste Alice UUID)
-docker exec -it dental_backend sh -lc \
-'curl -sS -X POST http://python-service:8000/chat \
-  -H "Content-Type: application/json" \
-  -d "{\"userId\":\"<ALICE_UUID>\",\"sessionId\":null,\"message\":\"slots for tomorrow?\"}" | jq'
-```
-
----
-
-## 12) Security/Next steps
-
-- Replace demo password logic with **bcrypt**.
-- Add **refresh tokens** & CSRF/runtime protection.
-- Add a **confirmation flow** (pending → confirmed), provider calendars, reminders.
-- Observability: Prometheus metrics, structured JSON logs, trace IDs across services.
