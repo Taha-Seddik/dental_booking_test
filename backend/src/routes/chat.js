@@ -42,12 +42,6 @@ router.post("/", authenticateChatToken, chatLimiter, async (req, res) => {
 
     // Try to call Python microservice if available
     try {
-      console.log("Calling Python with:", {
-        userId,
-        sessionId,
-        message,
-        pythonServiceUrl,
-      });
 
       const response = await axios.post(`${pythonServiceUrl}/chat`, {
         userId,

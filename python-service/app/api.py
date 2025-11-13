@@ -19,7 +19,6 @@ def health():
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest):
-    print("PYTHON /chat payload:", req.model_dump())
     session_id = ensure_session(req.userId, req.sessionId)
     log_message(session_id, "user", req.message)
 

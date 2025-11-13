@@ -1,4 +1,3 @@
-README.md
 pyproject.toml
 app/__init__.py
 app/api.py
