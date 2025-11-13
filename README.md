@@ -182,42 +182,21 @@ docker compose up -d --build
    - Login as `alice@example.com` / `password123`.
    - Call `POST /api/chatbot/token` to receive chat token.
    - Screenshot: successful token response.
+  
+<img width="1914" height="400" alt="image" src="https://github.com/user-attachments/assets/b553603c-0185-49a1-8cda-5e7f1c899461" />
 
 2) **Availability – tomorrow**
    - In the chat UI: “slots for tomorrow?”
    - Expected: list of 30-min slots for **future** date (your `TZ_NAME`), not 2023.  
    - Screenshot: reply with slot list.
 
+<img width="1919" height="400" alt="image" src="https://github.com/user-attachments/assets/4d040742-ced2-482f-9715-e5bc6a0d1db5" />
+  
 3) **Book specific time**
    - “book me tomorrow at 09:30”
    - Expected: reply confirms **pending** appointment with start/end, provider, location, and ID.
    - DB: `appointments` has a new row for Alice.
    - Screenshot: chat confirmation + DBeaver row.
 
-4) **Conflict handling**
-   - Seed or create an appointment that overlaps (e.g., 09:00–09:30).
-   - Ask for availability: that slot should be missing.
-   - Screenshot: slot list without the conflicting time.
+<img width="1919" height="400" alt="image" src="https://github.com/user-attachments/assets/17d84ab1-c592-4f3c-8525-279cb3448cba" />
 
-5) **Short-lived chat token**
-   - Wait >5 minutes or set `expiresIn` shorter; call `/api/chat`.
-   - Expected: backend 401/403 for expired chat token.
-   - Screenshot: error toast / backend log.
-
-6) **Rate limiting**
-   - Fire many requests quickly (e.g., spam the Send button).
-   - Expected: 429 from backend (depending on your limiter values).
-   - Screenshot: network/error log.
-
-7) **Fallback (no OpenAI key)**
-   - Remove `OPENAI_API_KEY` from Python env and restart python-service.
-   - Chat still works with **rules** (simple parser + booking).
-   - Screenshot: availability/booking replies without LLM.
-
-8) **Timezone sanity**
-   - Set `TZ_NAME` to a different zone, rebuild python-service.
-   - Ask “normalize ‘tomorrow 09:30’ ” (or watch logs).
-   - Confirm the normalized ISO shows new offset.
-   - Screenshot: log snippet.
-
----
